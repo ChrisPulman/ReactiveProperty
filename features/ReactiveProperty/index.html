@@ -636,8 +636,15 @@ This can be set following values.</p>
 <li>This calls OnNext callback when Subscribe method call.</li>
 </ul>
 </li>
+<li>ReactivePropertyMode.Default<ul>
+<li>It is default value. It is same as <code>ReactivePropertyMode.DistinctUntilChanged | ReactivePropertyMode.RaiseLatestValueOnSubscribe</code>.</li>
 </ul>
-<p>Default value is <code>ReactivePropertyMode.DistinctUntilChanged | ReactivePropertyMode.RaiseLatestValueOnSubscribe</code>.</p>
+</li>
+<li>ReactivePropertyMode.IgnoreInigialValidationError<ul>
+<li>Ignore initial validation error.</li>
+</ul>
+</li>
+</ul>
 <p>If you don't need this behavior, then you can set ReactivePropertyMode.None value.</p>
 <pre><code class="cs">var rp = new ReactiveProperty&lt;string&gt;(&quot;initial value&quot;, mode: ReactivePropertyMode.None);
 rp.Subscribe(x =&gt; Console.WriteLine(x)); // -&gt; don't output value
