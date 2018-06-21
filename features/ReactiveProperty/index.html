@@ -118,7 +118,7 @@
         
             <li><a class="toctree-l4" href="#handling-validation-errors">Handling validation errors</a></li>
         
-            <li><a class="toctree-l4" href="#dont-need-initial-validation-error">Don't need initial validation error</a></li>
+            <li><a class="toctree-l4" href="#dont-need-an-initial-validation-error">Don't need an initial validation error</a></li>
         
         </ul>
     
@@ -556,7 +556,7 @@ In popular input form case, combine <code>ObserveHasErrors</code> property value
 }
 </code></pre>
 
-<h3 id="dont-need-initial-validation-error">Don't need initial validation error</h3>
+<h3 id="dont-need-an-initial-validation-error">Don't need an initial validation error</h3>
 <p>In default behavior, ReactiveProperty report errors when validation logic set.
 If you don't need initial validation error, then you can skip the error.
 Just call Skip method.</p>
@@ -583,6 +583,37 @@ Just call Skip method.</p>
 }
 </code></pre>
 
+<p>Or set <code>IgnoreInitialValidationError</code> flag mode argument of constructor.
+Sample code is as below:</p>
+<pre><code class="cs">class ViewModel
+{
+    // Set validation attributes
+    [Required(ErrorMessage = &quot;The name is required.&quot;)]
+    [StringLength(100, ErrorMessage = &quot;The name length should be lower than 30.&quot;)]
+    public ReactiveProperty&lt;string&gt; Name { get; }
+
+    public ReactiveProperty&lt;string&gt; NameErrorMessage { get; }
+
+    public ViewModel()
+    {
+        Name = new ReactiveProperty&lt;string&gt;(mode: ReactivePropertyMode.Default | ReactivePropertyMode.IgnoreInitialValidationError)
+            .SetValidateAttribute(() =&gt; Name);
+
+        // Handling an error message
+        NameErrorMessage = Name.ObserveErrorChanged
+            .Skip(1) // Skip the first error.
+            .Select(x =&gt; x?.OfType&lt;string&gt;()?.FirstOrDefault())
+            .ToReactiveProperty();
+    }
+}
+</code></pre>
+
+<p>What's different between <code>Skip</code> and <code>IgnoreInitialValidationError</code>?
+In <code>IgnoreInitialValidationError</code> case, <code>ReactiveProperty</code> class doesn't report an error of initial value.
+In <code>Skip</code> case, it is just ignore error event.</p>
+<p>This different is important on the supported platform of <code>INotifyDataErrorInfo</code> like WPF.
+<code>Skip</code> approach will be feedbacked to UI by red border.
+<code>IgnoreInitialValidationError</code> approach is no feedback to UI.</p>
 <h2 id="the-mode-of-reactiveproperty">The mode of ReactiveProperty</h2>
 <p>ReactiveProperty class call OnNext callback when Subscribe method called.</p>
 <pre><code class="cs">var x = new ReactiveProperty&lt;string&gt;(&quot;initial value&quot;);
