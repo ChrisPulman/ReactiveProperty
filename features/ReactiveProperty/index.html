@@ -596,12 +596,12 @@ Sample code is as below:</p>
 
     public ViewModel()
     {
+        // Add IgnoreInitialValidationError flag
         Name = new ReactiveProperty&lt;string&gt;(mode: ReactivePropertyMode.Default | ReactivePropertyMode.IgnoreInitialValidationError)
             .SetValidateAttribute(() =&gt; Name);
 
         // Handling an error message
         NameErrorMessage = Name.ObserveErrorChanged
-            .Skip(1) // Skip the first error.
             .Select(x =&gt; x?.OfType&lt;string&gt;()?.FirstOrDefault())
             .ToReactiveProperty();
     }
