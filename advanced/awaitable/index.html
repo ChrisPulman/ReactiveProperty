@@ -8,7 +8,7 @@
   
   <meta name="author" content="neuecc, xin9le, okazuki">
   <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Universal Windows Platform - ReactiveProperty documentation</title>
+  <title>Work with await operator - ReactiveProperty documentation</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
@@ -17,9 +17,9 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Universal Windows Platform";
-    var mkdocs_page_input_path = "getting-started\\uwp.md";
-    var mkdocs_page_url = "/getting-started/uwp/";
+    var mkdocs_page_name = "Work with await operator";
+    var mkdocs_page_input_path = "advanced\\awaitable.md";
+    var mkdocs_page_url = "/advanced/awaitable/";
   </script>
   
   <script src="../../js/jquery-2.1.1.min.js"></script>
@@ -68,31 +68,19 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="../wpf/">Windows Presentation Foundation</a>
-                </li>
-                <li class=" current">
-                    
-    <a class="current" href="./">Universal Windows Platform</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l3"><a href="#create-a-project">Create a project</a></li>
-    
-
-    <li class="toctree-l3"><a href="#edit-codes">Edit codes</a></li>
-    
-
-    <li class="toctree-l3"><a href="#launch-the-application">Launch the application</a></li>
-    
-
-    </ul>
+    <a class="" href="../../getting-started/wpf/">Windows Presentation Foundation</a>
                 </li>
                 <li class="">
                     
-    <a class="" href="../xf/">Xamarin.Forms</a>
+    <a class="" href="../../getting-started/uwp/">Universal Windows Platform</a>
                 </li>
                 <li class="">
                     
-    <a class="" href="../avalonia/">Avalonia</a>
+    <a class="" href="../../getting-started/xf/">Xamarin.Forms</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../getting-started/avalonia/">Avalonia</a>
                 </li>
     </ul>
 	    </li>
@@ -142,11 +130,23 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="../../advanced/thread/">Thread control</a>
+    <a class="" href="../thread/">Thread control</a>
                 </li>
-                <li class="">
+                <li class=" current">
                     
-    <a class="" href="../../advanced/awaitable/">Work with await operator</a>
+    <a class="current" href="./">Work with await operator</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#awaitable">Awaitable</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#for-example">For example:</a></li>
+        
+        </ul>
+    
+
+    </ul>
                 </li>
     </ul>
 	    </li>
@@ -178,11 +178,11 @@
     
       
         
-          <li>Getting started &raquo;</li>
+          <li>Advanced topcs &raquo;</li>
         
       
     
-    <li>Universal Windows Platform</li>
+    <li>Work with await operator</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -192,97 +192,31 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="create-a-project">Create a project</h2>
-<ul>
-<li>
-<p>Create a Blank App (Universal Windows) project.</p>
-<ul>
-<li>Set the <code>Minimum version</code> item to Windows 10 Fall Creators Update (1.0.: Build 16299).</li>
-</ul>
-<p><img alt="Target version" src="../images/uwp-target-version.png" /></p>
-</li>
-<li>
-<p>Install ReactiveProperty package from NuGet.</p>
-</li>
-</ul>
-<h2 id="edit-codes">Edit codes</h2>
-<ul>
-<li>Create a MainPageViewModel.cs file.</li>
-<li>Edit files like following.</li>
-</ul>
-<p>MainPageViewModel.cs</p>
-<pre><code class="cs">using Reactive.Bindings;
-using System;
-using System.Linq;
-using System.Reactive.Linq;
+                <h1 id="awaitable">Awaitable</h1>
+<p>You can use <code>await</code> operator to <code>ReactiveProperty</code>(includes Slim), <code>ReadOnlyReactiveProperty</code>(includes Slim), <code>ReactiveCommand</code> and <code>AsyncReactiveCommand</code>.
+When use <code>await</code> operator to them, then wait a next value will be published.</p>
+<h2 id="for-example">For example:</h2>
+<pre><code class="cs">// Create a ReactiveProperty with initial value that is 999.
+var rp = new ReactiveProperty&lt;int&gt;(999);
 
-namespace GettingStartedUWP
-{
-    public class MainPageViewModel
-    {
-        public ReactiveProperty&lt;string&gt; Input { get; }
-        public ReadOnlyReactiveProperty&lt;string&gt; Output { get; }
+// Value will be setted after 1 sec.
+var _ = Task.Delay(1000).Subscribe(_ =&gt; rp.Value = 1000);
 
-        public MainPageViewModel()
-        {
-            Input = new ReactiveProperty&lt;string&gt;(&quot;&quot;);
-            Output = Input
-                .Delay(TimeSpan.FromSeconds(1))
-                .Select(x =&gt; x.ToUpper())
-                .ToReadOnlyReactiveProperty();
-        }
-    }
-}
+// Wait the value will be changed.
+var result = await rp;
+Console.WriteLine(result); // Output is '1000'. Not '999'.
 </code></pre>
 
-<p>MainPage.xaml.cs</p>
-<pre><code class="cs">using Windows.UI.Xaml.Controls;
+<pre><code class="cs">var cmd = new ReactiveCommand&lt;int&gt;();
+cmd.Execute(999); // Call the Execute method before use await operator.
 
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&amp;clcid=0x409
+// The Execute method will be called with an argument that value is 1000 after 1 sec.
+var _ = Task.Delay(1000).Subscribe(_ =&gt; cmd.Execute(1000));
 
-namespace GettingStartedUWP
-{
-    /// &lt;summary&gt;
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// &lt;/summary&gt;
-    public sealed partial class MainPage : Page
-    {
-        private MainPageViewModel ViewModel { get; } = new MainPageViewModel();
-        public MainPage()
-        {
-            this.InitializeComponent();
-        }
-    }
-}
+// Wait the Execute method will be called.
+var result = await cmd;
+Console.WriteLine(result); // Output is '1000'. Not '999'.
 </code></pre>
-
-<p>MainPage.xaml</p>
-<pre><code class="xml">&lt;Page x:Class=&quot;GettingStartedUWP.MainPage&quot;
-    xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
-    xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
-    xmlns:local=&quot;using:GettingStartedUWP&quot;
-    xmlns:d=&quot;http://schemas.microsoft.com/expression/blend/2008&quot;
-    xmlns:mc=&quot;http://schemas.openxmlformats.org/markup-compatibility/2006&quot;
-    mc:Ignorable=&quot;d&quot;&gt;
-
-    &lt;StackPanel Background=&quot;{ThemeResource ApplicationPageBackgroundThemeBrush}&quot;&gt;
-        &lt;TextBlock Text=&quot;Input&quot;
-                Style=&quot;{StaticResource CaptionTextBlockStyle}&quot; /&gt;
-        &lt;TextBox Text=&quot;{x:Bind ViewModel.Input.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}&quot;
-                Margin=&quot;5&quot; /&gt;
-        &lt;TextBlock Text=&quot;Output&quot;
-                Style=&quot;{StaticResource CaptionTextBlockStyle}&quot; /&gt;
-        &lt;TextBlock Text=&quot;{x:Bind ViewModel.Output.Value, Mode=OneWay}&quot;
-                Style=&quot;{StaticResource BodyTextBlockStyle}&quot;
-                Margin=&quot;5&quot; /&gt;
-    &lt;/StackPanel&gt;
-&lt;/Page&gt;
-</code></pre>
-
-<h2 id="launch-the-application">Launch the application</h2>
-<p>After launch the app, You can see the below window.
-The output value was displayed to upper case, after 1sec from the input.</p>
-<p><img alt="Launch the app" src="../images/launch-uwp-app.gif" /></p>
               
             </div>
           </div>
@@ -290,10 +224,10 @@ The output value was displayed to upper case, after 1sec from the input.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../xf/" class="btn btn-neutral float-right" title="Xamarin.Forms">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../../samples/" class="btn btn-neutral float-right" title="Samples">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../wpf/" class="btn btn-neutral" title="Windows Presentation Foundation"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../thread/" class="btn btn-neutral" title="Thread control"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -319,10 +253,10 @@ The output value was displayed to upper case, after 1sec from the input.</p>
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../wpf/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../thread/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../xf/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../../samples/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>
