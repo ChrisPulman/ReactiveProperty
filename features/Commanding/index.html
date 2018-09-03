@@ -131,6 +131,17 @@
         </ul>
     
 
+    <li class="toctree-l3"><a href="#thread">Thread</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#reactivecommand-class">ReactiveCommand class</a></li>
+        
+            <li><a class="toctree-l4" href="#asyncreactivecommand-class">AsyncReactiveCommand class</a></li>
+        
+        </ul>
+    
+
     </ul>
                 </li>
                 <li class="">
@@ -529,6 +540,18 @@ When created from a same ReactiveProperty&lt;bool&gt; instance, then synchronize
 </code></pre>
 
 <p><img alt="Share state" src="../images/asyncreactivecommand-share-state.gif" /></p>
+<h2 id="thread">Thread</h2>
+<h3 id="reactivecommand-class">ReactiveCommand class</h3>
+<p>When use the ReactiveCommand class, the class raise CanExecute event on a scheduler(default is UI thread scheduler.) If you want to change the behaviour then use the overload method of ToReactiveCommand which has IScheduler argument.</p>
+<p>See below:</p>
+<pre><code class="cs">canExecuteSource.ToReactiveCommand(theSchedulerInstanceYouWant);
+</code></pre>
+
+<h3 id="asyncreactivecommand-class">AsyncReactiveCommand class</h3>
+<p>AsyncReactiveCommand class doesn't change thread automaticaly. If you want to change thread, then use <code>ObserveOn</code> method.</p>
+<p>See below:</p>
+<pre><code class="cs">canExecuteSource.ObserveOn(theSchedulerInstanceYouWant).ToAsyncReactiveCommand();
+</code></pre>
               
             </div>
           </div>
