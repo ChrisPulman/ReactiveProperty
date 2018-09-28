@@ -193,30 +193,65 @@
             <div class="section">
               
                 <h1 id="awaitable">Awaitable</h1>
-<p>You can use <code>await</code> operator to <code>ReactiveProperty</code>(includes Slim), <code>ReadOnlyReactiveProperty</code>(includes Slim), <code>ReactiveCommand</code> and <code>AsyncReactiveCommand</code>.
+<p>You can use <code>await</code> operator to <code>ReactiveProperty</code>(includes Slim), <code>ReadOnlyReactiveProperty</code>(includes Slim), <code>ReactiveCommand</code>.
 When use <code>await</code> operator to them, then wait a next value will be published.</p>
 <h2 id="for-example">For example:</h2>
-<pre><code class="cs">// Create a ReactiveProperty with initial value that is 999.
-var rp = new ReactiveProperty&lt;int&gt;(999);
+<pre><code class="cs">// View with CancellationTokenSource
+public partial class SampleWindow : Window
+{
+    CancellationTokenSource cts;
+    SampleViewModel viewModel;
 
-// Value will be setted after 1 sec.
-var _ = Task.Delay(1000).Subscribe(_ =&gt; rp.Value = 1000);
+    public SampleWindow()
+    {
+        InitializeComponent();
+        cts = new CancellationTokenSource();
+        viewModel = new SampleViewModel(cts.Token);
+    }
 
-// Wait the value will be changed.
-var result = await rp;
-Console.WriteLine(result); // Output is '1000'. Not '999'.
+    protected override void OnClosed(EventArgs e)
+    {
+        // on finish, cancel all await.
+        cts.Cancel();
+        cts.Dispose();
+
+        base.OnClosed(e);
+    }
+}
+
+// ViewModel with CancellationToken
+public class SampleViewModel
+{
+    public ReactiveCommand MyCommand { get; private set; }
+    public ReactiveProperty&lt;int&gt; ClickCount { get; private set; }
+
+    public SampleViewModel(CancellationToken closeToken)
+    {
+        MyCommand = new ReactiveCommand();
+        ClickCount = new ReactiveProperty&lt;int&gt;();
+
+        // handling event by async/await.
+        SubscribeAsync(closeToken);
+    }
+
+    async void SubscribeAsync(CancellationToken closeToken)
+    {
+        using (var handler = MyCommand.GetAsyncHandler(closeToken))
+        {
+            while (true)
+            {
+                await handler; // await when clicked.
+                ClickCount.Value += 1;
+            }
+        }
+    }
+}
 </code></pre>
 
-<pre><code class="cs">var cmd = new ReactiveCommand&lt;int&gt;();
-cmd.Execute(999); // Call the Execute method before use await operator.
-
-// The Execute method will be called with an argument that value is 1000 after 1 sec.
-var _ = Task.Delay(1000).Subscribe(_ =&gt; cmd.Execute(1000));
-
-// Wait the Execute method will be called.
-var result = await cmd;
-Console.WriteLine(result); // Output is '1000'. Not '999'.
-</code></pre>
+<p>If you await multiple times, you should get <code>ObservableAsyncHandler&lt;T&gt;</code> from <code>GetAsyncHandler</code>. it can await multiple times on zero allocation. If you await single time, you can use <code>await command.WaitUntilValueChangedAsync(token)</code>.</p>
+<blockquote>
+<p>Note: you can await <code>ReactiveProperty</code> directly but we recommend use <code>GetAsyncHandler</code>(multiple) or <code>WaitUntilValueChangedAsync</code>(one shot) with pass over <code>CancellationToken</code>.</p>
+</blockquote>
               
             </div>
           </div>
